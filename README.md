@@ -5,6 +5,9 @@ Collection of scripts, applications and tools that I use in my "smart" home syst
 
 ## whoisthere.py
 Simple and dirty script to read connected devices from the webfrontend of my netgear router and prompt as JSON. Including IP,Name and MAC.
-Requires the Python module https://github.com/requests/requests
+Requires the Python module: 
+https://github.com/requests/requests
+https://github.com/djc/couchdb-python/
+
 
 *Please note: You might have to adjust the IP and hopefully the password in the GET request*
