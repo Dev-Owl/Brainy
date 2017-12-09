@@ -1,7 +1,16 @@
 import requests
-import json
+import couchdb
+import time
+import calendar
 from HTMLParser import HTMLParser
-
+class User(object):
+	def __init__(self,ip,name,mac):
+		self.ip = ip
+		self.name = name
+		self.mac = mac
+		self.time = calendar.timegm(time.gmtime())
+	def json(self):
+		return {'ip':self.ip,'name':self.name,'mac':self.mac,'time':self.time}
 
 class MyHTMLParser(HTMLParser):
 	def __init__(self):
@@ -19,9 +28,8 @@ class MyHTMLParser(HTMLParser):
 		if self.tdTagActive and tag == "span":
 			self.tdTagActive = False
 			if len(self.CurrentUser) == 3:
-				self.Users.append(self.CurrentUser)
+				self.Users.append(User(self.CurrentUser[0],self.CurrentUser[1],self.CurrentUser[2]))
 				self.CurrentUser = []
-	
 	def handle_data(self, data):
 		if self.tdTagActive and data != "":
 			self.CurrentUser.append( data)
@@ -29,11 +37,11 @@ class MyHTMLParser(HTMLParser):
 		return self.Users
 
 s = requests.Session()
-s.auth = ('admin', 'XXXXXXXXXXXXXXXXX')
+s.auth = ('admin', 'XXXXXXXXXXXX')
 r = s.get('http://192.168.1.1/DEV_device.htm')
-#print r.text
 parser = MyHTMLParser()
 parser.feed(r.text)
-print json.dumps(parser.result())
-
-
+couch = couchdb.Server()
+db = couch['brainynetwork']
+for i,u in enumerate(parser.result()):
+	db.save( u.json())
