@@ -66,8 +66,23 @@ python analyse_signal.py -tranmit a_on.json
 Send a transmit file, faster as -fastsend as the data is used from the file
 
 Verbose printing can be activated by using -verbose
-
-
+### Full example
+```
+python analyse_signal.py -rec -write m_on_r.json 
+Starting recording in 2s, be ready
+Starting...
+Recording done
+python analyse_signal.py -plot -read m_on_r.json 
+python analyse_signal.py -create -read m_on_r.json 
+Transmit file done
+Path to save file:m_on.json
+File created, use the -transmit option to send this file
+python analyse_signal.py -transmit m_on.json -o_pin 27
+```
++ record raw data to a file
++ plot recorded data to diagram
++ create a transmit file from the recorded data
++ send transmit file with pin 27
 
 
 
