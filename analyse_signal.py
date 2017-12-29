@@ -57,14 +57,16 @@ def record_data():
     GPIO.setup(RECEIVE_PIN, GPIO.IN)
     cumulative_time = 0
     beginning_time = datetime.now()
-    vprint('Started recording', True)
+    print "Starting recording in 2s, be ready"
+    time.sleep(2)
+    print "Starting..."
     while cumulative_time < MAX_DURATION: # Record for fixed time default 5s
         time_delta= datetime.now() - beginning_time
         WORKING_DATA[0].append(time_delta)
         WORKING_DATA[1].append(GPIO.input(RECEIVE_PIN))
         cumulative_time = time_delta.seconds
-    vprint('Ended recording', True)
-    print vprint("{0},samples recorded".format( len(WORKING_DATA[0])), True)
+    print "Recording done"
+    vprint("{0},samples recorded".format( len(WORKING_DATA[0])), True)
     GPIO.cleanup()
 
     vprint('Processing', True)
@@ -163,6 +165,7 @@ def create_transmitter_file():
     data = time_pattern(False,False)
     #wirte file
     transmitFile = TransmitFile( create_encode(data), data[1])
+    print "Transmit file done"
     save_path = raw_input("Path to save file:")
     with open(save_path, 'w') as f:
         f.write(jsonpickle.encode( transmitFile))
