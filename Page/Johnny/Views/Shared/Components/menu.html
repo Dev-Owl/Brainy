@@ -1,0 +1,8 @@
+﻿<script type="text/x-template" id="menu-control">
+    <div class="mdl-layout__drawer">
+        <span class="mdl-layout-title">@ViewData["Title"]</span>
+        <nav class="mdl-navigation">
+            <a class="mdl-navigation__link" v-for="item in menu" href="{{item.link}}">{{item.name}}</a>
+        </nav>
+    </div>
+</script>
