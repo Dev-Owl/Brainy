@@ -15,7 +15,7 @@ TRANSMITTER_PIN = 22 #Output pin
 HIGH_OFFSET = 0.00005 #Default offsets for time generations 
 LOW_OFFSET  = 0.00005
 VERBOSE = False #Verbose loging setting
-
+MINOC = 1
 '''
     Class to store the high and low times for a signal
 '''
@@ -129,6 +129,14 @@ def time_pattern(screen, encode):
                 change_low_time = WORKING_DATA[0][i]
             state = WORKING_DATA[1][i]
     vprint("Pattern search done",True)
+    if(MINOC <> 1):
+        removeEncoded = []
+        for key in list(pattern.keys()):
+            if(pattern[key].amount < MINOC):
+                removeEncoded.append( pattern[key].code)
+                del pattern[key]
+        encoded_msg = [c for c in encoded_msg if c not in removeEncoded]
+        
     vprint("Processing results",True)
     if screen:
         for k,v in sorted(pattern.items(), key=lambda x:x[1].amount):
@@ -138,6 +146,9 @@ def time_pattern(screen, encode):
         for k,v in sorted(pattern.items(), key=lambda x:x[1].amount):
             print "Pattern high {0:.8f} low {1:.8f} encoded as {2} occoured {3}".format(float(k[HIGH]), float(k[LOW]), v.code, v.amount)
         print ",".join(str(v) for v in encoded_msg)
+    
+    
+    
     return (pattern, encoded_msg)
 #Print a message if verbose mode is on    
 def vprint(message, info):
@@ -219,6 +230,7 @@ if __name__ == '__main__':
     ap.add_argument("-create", action='store_true', help="create a new transmitter file based on the loaded data")
     ap.add_argument("-fastsend", action='store_true', help="analyse build command and send result in one step")
     ap.add_argument("-transmit",action="store", help="send a transmit file")
+    ap.add_argument("-minoc",action="store",help="minimum occurrence to incldue in encoding")
     args= ap.parse_args()
     VERBOSE = args.verbose
     
@@ -247,6 +259,9 @@ if __name__ == '__main__':
     if args.h_offset <> None:
         HIGH_OFFSET = float(args.h_offset)
         vprint( "High offset set to {0:.8f} seconds".format(HIGH_OFFSET), True)
+    if args.minoc <> None:
+        MINOC = int(args.minoc)
+        vprint("Set minimum occurrence to {}".format(MINOC),True)
     
     if args.read <> None:
         if args.read== '':
