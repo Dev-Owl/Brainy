@@ -1,0 +1,26 @@
+﻿@model HomeViewModel
+@inject IJsonHelper Json;
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+{{switches[0].name}}
+
+<div class="mdl-grid">
+    <div class="mdl-cell mdl-cell--4-col">4</div>
+    <div class="mdl-cell mdl-cell--4-col">4</div>
+    <div class="mdl-cell mdl-cell--4-col">4</div>
+</div>
+
+@section Scripts{
+    <script type="text/javascript">
+
+        // Write your JavaScript code.
+        var app = new Vue({
+            el: '#app',
+            data: @Json.Serialize(Model)
+        })
+
+
+    </script>
+}
