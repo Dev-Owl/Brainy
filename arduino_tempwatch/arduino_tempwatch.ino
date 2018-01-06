@@ -5,7 +5,9 @@
 #define stateLength 65535
 #define start_offset 0
 #define min_startBytes 4
-
+#define pulseRange 250 
+#define pulseOffset 100
+#define checkLength 100
 volatile boolean start = false;
 volatile unsigned int stateHigh[120]; 
 volatile unsigned int stateLow[120];
@@ -89,14 +91,80 @@ unsigned int safeValue(long value)
   
 void encode()
 {
+    boolean highLong = false;
+    boolean lowLong  = false;
+    int rhigh = 0;
+    int rlow  = 0;
+    Serial.println();
     //Try to find 1 and 0 in signal and print
+    for(int i=0; i<checkLength;++i)
+    {
+        
+        if(stateHigh[i] > 32767)
+          continue;
+        if(stateLow[i] > 32767)
+          continue;
+        rhigh = stateHigh[i];
+        rlow  = stateLow[i];
+        
+        rhigh -= pulseRange;
+        rhigh = abs(rhigh);
+        rlow  -= pulseRange;
+        rlow = abs(rlow);
+        
+        if(rhigh <= pulseOffset)
+        {
+          highLong = false;
+        }
+        else
+        {
+          rhigh -= pulseRange;
+          rhigh = abs(rhigh);
+          if(rhigh <= pulseOffset)
+          {
+            highLong = true;
+          }
+          else
+          {
+            continue;
+          }
+        }
+        if(rlow <= pulseOffset)
+        {
+          lowLong = false;
+        }
+        else
+        {
+          rlow -= pulseRange;
+          rlow = abs(rlow);
+          if(rlow <= pulseOffset)
+          {
+            lowLong = true;
+          }
+          else
+          {
+            continue;
+          }
+        }
+        //if here the signal was in the range
+        if(!highLong && lowLong)
+        {
+          Serial.print("0");
+        }
+        else
+        {
+          Serial.print("1");
+        }
+        
+    }
+    Serial.println();
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
   if(start)
   {
-    if(counter >= 80)
+    if(counter >= checkLength)
     {
         Serial.print("Start found at ");
         Serial.println(millis());
@@ -106,12 +174,13 @@ void loop() {
         counter = 0;
         start = false;
         //Print
-        for(int i=0; i<80;++i)
+        for(int i=0; i<checkLength;++i)
         {
           Serial.print(stateHigh[i]);
           Serial.print(",");
           Serial.println(stateLow[i]);
         }
+        encode();
         interrupts();
     }
   }
