@@ -3,11 +3,13 @@
 #define interupt  0
 #define start_time 740
 #define stateLength 65535
-#define start_offset 0
+#define start_offset 50
 #define min_startBytes 4
 #define pulseRange 250 
 #define pulseOffset 100
-#define checkLength 100
+#define checkLength 119
+#define DEBUG  0
+
 volatile boolean start = false;
 volatile unsigned int stateHigh[120]; 
 volatile unsigned int stateLow[120];
@@ -20,7 +22,9 @@ void setup() {
   pinMode(input_pin,INPUT);
   attachInterrupt(interupt, change, CHANGE);
   Serial.begin(115200);
+  #if DEBUG == 1
   Serial.println("Go");
+  #endif
 }
 
 void change()
@@ -48,6 +52,13 @@ void change()
       if(abs(result) <= start_offset)
       {
         startCounter++;
+        #if DEBUG == 1
+         stateLow[counter]= result;
+        #endif
+        
+      }
+      else{
+        startCounter =0;
       }
       if(startCounter >= min_startBytes)
       {
@@ -70,6 +81,13 @@ void change()
       if(abs(result) <= start_offset)
       {
         startCounter++;
+        #if DEBUG == 1
+         stateHigh[counter]= result;
+        #endif
+        
+      }
+      else{
+        startCounter =0;
       }
       if(startCounter >= min_startBytes)
       {
@@ -106,7 +124,10 @@ void encode()
           continue;
         rhigh = stateHigh[i];
         rlow  = stateLow[i];
-        
+        if(rhigh <= pulseOffset)
+          continue;
+        if(rlow <= pulseOffset)  
+          continue;
         rhigh -= pulseRange;
         rhigh = abs(rhigh);
         rlow  -= pulseRange;
@@ -166,13 +187,16 @@ void loop() {
   {
     if(counter >= checkLength)
     {
+        #if DEBUG == 1
         Serial.print("Start found at ");
         Serial.println(millis());
         Serial.println("5 bytes found");
+        #endif
         noInterrupts();
         //Reset
         counter = 0;
         start = false;
+        #if DEBUG == 1
         //Print
         for(int i=0; i<checkLength;++i)
         {
@@ -180,6 +204,7 @@ void loop() {
           Serial.print(",");
           Serial.println(stateLow[i]);
         }
+        #endif
         encode();
         interrupts();
     }
