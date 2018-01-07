@@ -45,14 +45,19 @@ if __name__ == '__main__':
     ap.add_argument("-port", action='store', help="name of serial port to open")
     ap.add_argument("-verbose", action='store_true',help="verbose output flag")
     ap.add_argument("-skipcrc", action='store_true',help="skip crc check, danger")
+    ap.add_argument("-parse", action='store', help="parse message and quit")
     args= ap.parse_args()
     
-    if args.port == None:
+    if args.port == None and args.parse == None:
         print "No port set, use -port to configure serial port"
         exit(0)
     VERBOSE = args.verbose
     SKIPCRC = args.skipcrc
-    
+    if args.parse != None:
+        parseData(args.parse)
+        exit(0)
+        
+
     arduino = serial.Serial(args.port,115200,timeout=.1)
     while True:
         data = arduino.readline()[:-2]

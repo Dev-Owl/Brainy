@@ -7,12 +7,13 @@
 #define min_startBytes 4
 #define pulseRange 250 
 #define pulseOffset 100
-#define checkLength 119
+#define checkLength 80
 #define DEBUG  0
+#define maxdata 120
 
 volatile boolean start = false;
-volatile unsigned int stateHigh[120]; 
-volatile unsigned int stateLow[120];
+volatile unsigned int stateHigh[maxdata]; 
+volatile unsigned int stateLow[maxdata];
 volatile unsigned int counter = 0;
 volatile int startCounter = 0;
 
@@ -41,7 +42,7 @@ void change()
       //Add new time to low
       stateLow[counter]= result;
       counter++;//Move
-      if(counter >= 120)
+      if(counter >= maxdata)
       {
         counter = 0; //reset
       }
@@ -52,10 +53,6 @@ void change()
       if(abs(result) <= start_offset)
       {
         startCounter++;
-        #if DEBUG == 1
-         stateLow[counter]= result;
-        #endif
-        
       }
       else{
         startCounter =0;
@@ -81,10 +78,6 @@ void change()
       if(abs(result) <= start_offset)
       {
         startCounter++;
-        #if DEBUG == 1
-         stateHigh[counter]= result;
-        #endif
-        
       }
       else{
         startCounter =0;
@@ -113,6 +106,7 @@ void encode()
     boolean lowLong  = false;
     int rhigh = 0;
     int rlow  = 0;
+    int maxPulse = pulseRange*2+pulseOffset; 
     Serial.println();
     //Try to find 1 and 0 in signal and print
     for(int i=0; i<checkLength;++i)
@@ -127,6 +121,8 @@ void encode()
         if(rhigh <= pulseOffset)
           continue;
         if(rlow <= pulseOffset)  
+          continue;
+        if(rlow > maxPulse || rhigh > maxPulse)
           continue;
         rhigh -= pulseRange;
         rhigh = abs(rhigh);
