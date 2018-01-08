@@ -1,22 +1,21 @@
-
-#define input_pin 2
-#define interupt  0
-#define start_time 740
-#define stateLength 65535
-#define start_offset 50
-#define min_startBytes 4
-#define pulseRange 250 
-#define pulseOffset 100
-#define checkLength 80
-#define DEBUG  0
-#define maxdata 120
+const int input_pin = 2;
+const int interupt = 0;
+const int start_time = 740;
+const unsigned int stateLength = 65535;
+const int start_offset = 50;
+const int min_startBytes = 8;
+const int pulseRange = 250;
+const int pulseOffset = 100;
+const int checkLength = 240;
+const int maxdata = 300;
+#define DEBUG 0
 
 volatile boolean start = false;
 volatile unsigned int stateHigh[maxdata]; 
 volatile unsigned int stateLow[maxdata];
 volatile unsigned int counter = 0;
 volatile int startCounter = 0;
-
+int maxValidPulse = pulseRange * 2 + pulseOffset;
 
 void setup() {
   // Set pin to input and register interrupt
@@ -37,7 +36,7 @@ void change()
   {
     high = micros();
     result = safeValue(high - low);
-    if(start)
+    if(start)//Prefilter crap
     {
       //Add new time to low
       stateLow[counter]= result;
@@ -68,7 +67,7 @@ void change()
   {
     low = micros();
     result = safeValue(low - high);
-    if(start)
+    if(start) //Prefilter crap
     {
       stateHigh[counter]= result;
     }
@@ -99,14 +98,13 @@ unsigned int safeValue(long value)
      }
      return value;
 }
-  
+/*
 void encode()
 {
     boolean highLong = false;
     boolean lowLong  = false;
     int rhigh = 0;
     int rlow  = 0;
-    int maxPulse = pulseRange*2+pulseOffset; 
     Serial.println();
     //Try to find 1 and 0 in signal and print
     for(int i=0; i<checkLength;++i)
@@ -122,7 +120,7 @@ void encode()
           continue;
         if(rlow <= pulseOffset)  
           continue;
-        if(rlow > maxPulse || rhigh > maxPulse)
+        if(rlow > maxValidPulse || rhigh > maxValidPulse)
           continue;
         rhigh -= pulseRange;
         rhigh = abs(rhigh);
@@ -176,6 +174,49 @@ void encode()
     }
     Serial.println();
 }
+*/
+
+
+void encode()
+{
+  boolean highLong = false;
+  boolean lowLong  = false;
+  int rhigh = 0;
+  int rlow  = 0;
+  Serial.println();
+  for(int i=0; i<checkLength;++i)
+  {
+    //Skip too high values
+    if(stateHigh[i] > 32767)
+      continue;
+    if(stateLow[i] > 32767)
+      continue;
+    rhigh = stateHigh[i];
+    rlow  = stateLow[i];
+    //Skip start bits in range of 650 to 750
+    if(abs( rhigh - start_time) <= start_offset
+       &&
+       abs( rlow - start_time) <= start_offset
+      )
+      {
+        continue;
+      }
+      
+    if(rhigh > maxValidPulse 
+    || rlow  > maxValidPulse 
+    || rhigh < pulseOffset 
+    || rlow  < pulseOffset)
+      continue;
+    //High pulse longer as low pulse 1 else 0
+    //No range check simple rule
+    if(rhigh > rlow)
+      Serial.print("1");
+    else
+      Serial.print("0");
+  }
+  Serial.println();
+    
+}
 
 void loop() {
   // put your main code here, to run repeatedly:
@@ -198,7 +239,17 @@ void loop() {
         {
           Serial.print(stateHigh[i]);
           Serial.print(",");
-          Serial.println(stateLow[i]);
+          Serial.print(stateLow[i]);
+          Serial.print("(");
+          if(stateHigh[i] > stateLow[i])
+          {
+              Serial.print(stateHigh[i]-stateLow[i]);
+          }
+          else{
+             Serial.print(stateLow[i]-stateHigh[i]);
+          }
+        
+          Serial.println(")");
         }
         #endif
         encode();

@@ -30,8 +30,13 @@ def parseData(data):
             temperature = round(((( float(toByte(data[12:24]))/10) - 90) -32) * 5/9,2)
             humidity = toByte(data[24:32])
             print "ID:{0} Battery:{1} SendButton:{2} Chanel:{3} Temperatur:{4} Humidity:{5}".format(rawID,batteryEmpty,sendButton,chanel,temperature,humidity)
+            return
         else:
             printv("Checksum failed")
+            if(len(data) >= 80):
+                #We have more data to test take the next 5 bytes
+                parseData(data[8:])
+        
         
     else:
         printv("Message is too short")
@@ -63,4 +68,5 @@ if __name__ == '__main__':
         data = arduino.readline()[:-2]
         if data:
             parseData(data)
+            printv("Done")
 
